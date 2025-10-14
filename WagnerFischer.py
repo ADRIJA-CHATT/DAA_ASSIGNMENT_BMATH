@@ -2,8 +2,7 @@
 """
 wagner_fischer.py
 
-Provides wagner_fischer_with_log(s, t) to compute Levenshtein distance
-and a main() that accepts command-line or interactive input and prints results.
+wagner_fischer_with_log(s, t) to compute Levenshtein distance
 """
 
 from typing import List, Dict, Any
@@ -64,7 +63,7 @@ def wagner_fischer_with_log(s: str, t: str) -> Dict[str, Any]:
             rev_ops.append({"op": "insert", "pos": i, "char": t[j - 1]})
             j = j - 1
         else:
-            # safety fallback (shouldn't happen) - break to avoid infinite loop
+            # break to avoid infinite loop
             break
 
     ops = list(reversed(rev_ops))
@@ -84,7 +83,7 @@ def wagner_fischer_with_log(s: str, t: str) -> Dict[str, Any]:
                 cur[pos] = action["to"]
                 applied_ops.append({"op": "substitute", "pos": pos, "from": old, "to": action["to"]})
             else:
-                # defensive: if pos out of range, skip substitute but log it
+                # if pos out of range, skip substitute but log it
                 applied_ops.append({"op": "substitute", "pos": pos, "from": None, "to": action["to"]})
             transformations.append("".join(cur))
         elif action["op"] == "delete":
