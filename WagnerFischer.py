@@ -125,7 +125,7 @@ def print_summary(result: Dict[str, Any]) -> None:
 
 
 def main(argv: List[str] = None) -> int:
-    """Entry point: accepts two strings either as argv or via input() and prints result."""
+    """accepts two strings either as input() and prints result."""
     if argv is None:
         argv = sys.argv[1:]
 
