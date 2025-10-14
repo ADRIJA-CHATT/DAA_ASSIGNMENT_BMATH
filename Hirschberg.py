@@ -126,7 +126,6 @@ def hirschberg_with_log(S: str, T: str) -> Tuple[List[Dict[str, Any]], List[str]
             transformations.append("".join(cur))
     return applied, transformations
 
-# ---------- New: CLI entrypoint + pretty printing ----------
 
 def print_summary(applied: List[Dict[str, Any]], transformations: List[str]) -> None:
     """Nicely print key parts of the result."""
@@ -135,7 +134,7 @@ def print_summary(applied: List[Dict[str, Any]], transformations: List[str]) -> 
     edit_ops = [op for op in applied if op.get("op") in ("insert", "delete", "substitute")]
     print("\nHirschberg alignment summary")
     print("============================")
-    print("Edit distance (count of insert/delete/substitute):", len(edit_ops))
+    print("Edit distance:", len(edit_ops))
     print("\nStep-by-step transformations (initial -> ... -> target):")
     for idx, s in enumerate(transformations):
         print(f"  [{idx:2d}] {s}")
@@ -143,7 +142,7 @@ def print_summary(applied: List[Dict[str, Any]], transformations: List[str]) -> 
     pp.pprint(applied)
 
 def main(argv: List[str] = None) -> int:
-    """Entry point: accepts two strings either as argv or via input() and prints result.
+    """accepts two strings as input() and prints result.
     Returns exit code 0 on success.
     """
     if argv is None:
