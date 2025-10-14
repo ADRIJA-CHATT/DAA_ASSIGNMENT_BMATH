@@ -21,9 +21,9 @@ import argparse
 import pprint
 import sys
 
-from wagner_fischer import wagner_fischer_with_log
-from hirschberg import hirschberg_with_log
-from ukkonen import ukkonen_levenshtein
+from WagnerFischer import wagner_fischer_with_log
+from Hirschberg import hirschberg_with_log
+from Ukkonen import ukkonen_levenshtein
 
 
 pp = pprint.PrettyPrinter(width=120, compact=False)
