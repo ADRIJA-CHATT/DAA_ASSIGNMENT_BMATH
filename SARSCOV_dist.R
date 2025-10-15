@@ -2,7 +2,7 @@
 df <- read.csv("C:/Users/ADRIJA/OneDrive/Documents/SARS-COV 2 VARIANTS.csv", stringsAsFactors = FALSE)
 
 variants <- df$Variant
-genomes <- df$Full_Genome
+genomes <- df$Genome
 n <- length(variants)
 dist_matrix <- matrix(0, n, n, dimnames = list(variants, variants))
 
@@ -38,5 +38,4 @@ for (i in seq_len(n)) {
     }
   }
 }
-dist_matrix<-dist_matrix[-1,-1]
 write.csv(dist_matrix, "SARS_COV_2_Variant_Distance_Matrix_R.csv", row.names = TRUE)
