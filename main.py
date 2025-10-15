@@ -3,17 +3,9 @@
 main.py
 
 Menu + CLI runner that imports the three algorithms:
- - wagner_fischer_with_log (from wagner_fischer.py)
- - hirschberg_with_log   (from hirschberg.py)
- - ukkonen_levenshtein  (from ukkonen.py)
-
-Usage (interactive):
-    python main.py
-
-Usage (CLI):
-    python main.py --mode wagner --a "kitten" --b "sitting"
-    python main.py --mode ukkonen --a "abcd" --b "cbgf" --k 3
-    python main.py --mode hirschberg --a "abc" --b "axc"
+ - wagner_fischer_with_log (from WagnerFischer.py)
+ - hirschberg_with_log   (from Hirschberg.py)
+ - ukkonen_levenshtein  (from Ukkonen.py)
 """
 
 from typing import Optional
