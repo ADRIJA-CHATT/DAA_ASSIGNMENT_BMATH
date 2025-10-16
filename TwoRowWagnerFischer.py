@@ -47,5 +47,17 @@ def main(argv=None) -> int:
     return 0
 
 
+def main(argv=None) -> int:
+    argv = []  # ignore Jupyter’s internal command-line args
+
+    # Always take input manually
+    S = input("Enter first string: ").strip()
+    T = input("Enter second string: ").strip()
+
+    dist = levenshtein_distance_two_row(S, T)
+    print(f"Levenshtein distance between '{S}' and '{T}' = {dist}")
+    return 0
+
+
 if __name__ == "__main__":
     main()
