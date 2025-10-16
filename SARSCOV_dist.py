@@ -30,10 +30,12 @@ for i in range(n):
     for j in range(n):
         if i == j:
             matrix[i, j] = 0.0
-        else:
+        else if i<j:
             d = wagner_fischer_two_row(genomes[i], genomes[j])
             matrix[i, j] = d / (len(genomes[i]) + len(genomes[j]))
-
+for i in range(n):
+    for j in range(i):
+        matrix[i,j]=matrix[j,i]
 # ---------- Step 4: Create and Save Matrix ----------
 distance_df = pd.DataFrame(matrix, index=variants, columns=variants)
 distance_df.to_csv("Variant_Distance_Matrix.csv", index=True)
