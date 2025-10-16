@@ -1,5 +1,5 @@
 # Load data
-df <- read.csv("C:/Users/ADRIJA/OneDrive/Documents/SARS-COV 2 VARIANTS.csv", stringsAsFactors = FALSE)
+df <- read.csv("C:/Users/ADRIJA/OneDrive/Documents/SARS COV 2 VARIANTS.csv", stringsAsFactors = FALSE)
 
 variants <- df$Variant
 genomes <- df$Genome
@@ -32,9 +32,16 @@ wagner_fischer_two_row <- function(a, b) {
 # Compute normalized distances
 for (i in seq_len(n)) {
   for (j in seq_len(n)) {
-    if (i != j) {
+    if (i < j) {
       d <- wagner_fischer_two_row(genomes[i], genomes[j])
       dist_matrix[i, j] <- d / (nchar(genomes[i]) + nchar(genomes[j]))
+    }
+  }
+}
+for(i in seq_len(n)){
+  for(j in seq_len(n)){
+    if(i>j){
+      dist_matrix[i,j]<-dist_matrix[j,i]
     }
   }
 }
