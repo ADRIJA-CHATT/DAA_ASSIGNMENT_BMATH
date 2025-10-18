@@ -55,7 +55,8 @@ def main(argv=None) -> int:
     T = input("Enter second string: ").strip()
 
     dist = levenshtein_distance_two_row(S, T)
-    print(f"Levenshtein distance between '{S}' and '{T}' = {dist}")
+    print(f"Levenshtein distance = {dist}")
+    print(f"Normalized Levenshtein distance = {dist/(len(S)+len(T))}") 
     return 0
 
 
