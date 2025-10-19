@@ -4,24 +4,34 @@ import pprint
 import sys
 
 def _nw_score(A: str, B: str) -> List[int]:
+    """
+    Compute the last row of the Wagner-Fischer DP table for strings A and B.
+    Used in Hirschberg to efficiently find split points.
+    Returns a list of distances from prefix of A to prefixes of B.
+    """
     n = len(B)
-    prev = list(range(n + 1))
+    prev = list(range(n + 1))  # base case: distances to empty A
     for i in range(1, len(A) + 1):
-        cur = [i] + [0] * n
+        cur = [i] + [0] * n  # first element: distance from A[:i] to empty B
         ai = A[i - 1]
         for j in range(1, n + 1):
             cost = 0 if ai == B[j - 1] else 1
+            # minimal cost among substitution/match, deletion, insertion
             cur[j] = min(prev[j - 1] + cost, prev[j] + 1, cur[j - 1] + 1)
-        prev = cur
+        prev = cur  # move to next row
     return prev
 
 
 def _align_base(A: str, B: str) -> List[Dict[str, Any]]:
-    """Base case alignment using standard dynamic programming."""
+    """
+    Base case alignment using standard Wagner-Fischer DP.
+    Returns a list of edit operations to transform A into B.
+    """
     m, n = len(A), len(B)
     D = [[0] * (n + 1) for _ in range(m + 1)]
     choice = [[""] * (n + 1) for _ in range(m + 1)]
 
+    # Initialize first row/column
     for i in range(m + 1):
         D[i][0] = i
         choice[i][0] = "start" if i == 0 else "delete"
@@ -29,14 +39,17 @@ def _align_base(A: str, B: str) -> List[Dict[str, Any]]:
         D[0][j] = j
         choice[0][j] = "start" if j == 0 else "insert"
 
+    # Fill DP table with cost and choices
     for i in range(1, m + 1):
         for j in range(1, n + 1):
             cost = 0 if A[i-1] == B[j-1] else 1
-            diag = D[i-1][j-1] + cost
-            delete = D[i-1][j] + 1
-            insert = D[i][j-1] + 1
+            diag = D[i-1][j-1] + cost      # substitution or match
+            delete = D[i-1][j] + 1         # deletion
+            insert = D[i][j-1] + 1         # insertion
             best = min(diag, delete, insert)
             D[i][j] = best
+
+            # Record choice for backtracking
             if best == diag and cost == 0:
                 choice[i][j] = "match"
             elif best == diag:
@@ -46,7 +59,7 @@ def _align_base(A: str, B: str) -> List[Dict[str, Any]]:
             else:
                 choice[i][j] = "insert"
 
-    # backtrack
+    # Backtrack to generate edit operations
     i, j = m, n
     rev_ops = []
     while i > 0 or j > 0:
@@ -65,12 +78,17 @@ def _align_base(A: str, B: str) -> List[Dict[str, Any]]:
             j -= 1
         else:
             break
-    return list(reversed(rev_ops))
+
+    return list(reversed(rev_ops))  # chronological order
 
 
 def hirschberg_with_log(S: str, T: str) -> Tuple[List[Dict[str, Any]], List[str]]:
-    """Compute edit operations and transformations using Hirschberg’s algorithm."""
+    """
+    Hirschberg's algorithm to compute edit operations and intermediate transformations
+    with reduced memory. Returns list of applied operations and resulting strings.
+    """
     def rec(A: str, B: str) -> List[Dict[str, Any]]:
+        # Base cases: one string empty or length 1
         if len(A) == 0:
             return [{"op": "insert", "pos": i, "char": B[i]} for i in range(len(B))]
         if len(B) == 0:
@@ -78,11 +96,15 @@ def hirschberg_with_log(S: str, T: str) -> Tuple[List[Dict[str, Any]], List[str]
         if len(A) == 1 or len(B) == 1:
             return _align_base(A, B)
 
+        # Split A in half
         mid = len(A) // 2
+
+        # Compute NW scores for left and reversed right halves
         scoreL = _nw_score(A[:mid], B)
         scoreR = _nw_score(A[mid:][::-1], B[::-1])
         nB = len(B)
 
+        # Find best split index in B
         best_k = 0
         best_val = None
         for k in range(nB + 1):
@@ -91,10 +113,11 @@ def hirschberg_with_log(S: str, T: str) -> Tuple[List[Dict[str, Any]], List[str]
                 best_val = val
                 best_k = k
 
+        # Recurse on left and right halves
         left_ops = rec(A[:mid], B[:best_k])
         right_ops = rec(A[mid:], B[best_k:])
 
-        # Shift right ops positions by mid
+        # Shift right operations by mid for correct positions
         shifted_right_ops = []
         for op in right_ops:
             op_copy = op.copy()
@@ -104,9 +127,10 @@ def hirschberg_with_log(S: str, T: str) -> Tuple[List[Dict[str, Any]], List[str]
 
         return left_ops + shifted_right_ops
 
+    # Get all edit operations
     ops = rec(S, T)
 
-    # Apply ops step-by-step to build transformations
+    # Apply operations step-by-step to get intermediate transformations
     cur = list(S)
     transformations = ["".join(cur)]
     applied = []
@@ -138,9 +162,15 @@ def hirschberg_with_log(S: str, T: str) -> Tuple[List[Dict[str, Any]], List[str]
 
 
 def print_summary(applied: List[Dict[str, Any]], transformations: List[str]) -> None:
-    """Nicely print the output."""
+    """
+    Print alignment summary:
+      - total edit distance
+      - step-by-step string transformations
+      - applied operations in order
+    """
     pp = pprint.PrettyPrinter(width=120, compact=False)
     edit_ops = [op for op in applied if op["op"] in ("insert", "delete", "substitute")]
+
     print("\nHirschberg Alignment Summary")
     print("============================")
     print(f"Edit distance: {len(edit_ops)}")
@@ -152,7 +182,10 @@ def print_summary(applied: List[Dict[str, Any]], transformations: List[str]) -> 
 
 
 def main(argv: List[str] = None) -> int:
-    """Main entry point."""
+    """
+    Main function to read strings and compute Hirschberg alignment.
+    Takes input manually.
+    """
     if argv is None:
         argv = sys.argv[1:]
 
