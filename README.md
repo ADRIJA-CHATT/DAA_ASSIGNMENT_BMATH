@@ -49,7 +49,7 @@ pip install -r requirements.txt
    ```
 
 ##  Analysis  
-- **Time complexity:** $O(nm)$ for Wagner–Fischer, lower for approximate/bounded methods.  
+- **Time complexity:** $\Theta(nm)$ for Wagner–Fischer, lower for approximate/bounded methods.  
 - **Space complexity:** reduced in two‑row and Hirschberg’s versions.  
 - **Correctness:** all algorithms yield identical edit distance results.  
 - **Scalability:** Ukkonen’s algorithm performs best when edit distance is small.  
@@ -59,9 +59,9 @@ Edit distance computation is vital in spell checking, DNA sequence alignment, NL
 This project highlights algorithmic design trade‑offs and performance scaling with input size and script.
 
 ##  Insights  
-- Wagner–Fischer: $O(nm)$ time and space.  
-- Two‑Row: $O(\min(n,m))$ space.  
-- Hirschberg: $O(n + m)$ space (divide‑and‑conquer).  
+- Wagner–Fischer: $\Theta(nm)$ time and space.  
+- Two‑Row: $\Theta(\min(n,m))$ space.  
+- Hirschberg: $\mathcal{O}(n + m)$ output space (divide‑and‑conquer).  
 - Ukkonen: best for small edit bounds.  
 
 ##  Licence  
