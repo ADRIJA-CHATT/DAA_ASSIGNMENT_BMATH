@@ -1,66 +1,66 @@
-# Spell Checker using Levenshtein Distance
-
 import nltk
-import Levenshtein
-nltk.download('words', quiet=True)
-
 from nltk.corpus import words
+import sys
 
-def load_dictionary():
-    """
-    English words from NLTK's word corpus.
-    """
-    word_list = [w.lower() for w in words.words()]
-    return set(word_list)
+# Make sure the NLTK 'words' corpus is downloaded
+try:
+    nltk.data.find('corpora/words')
+except LookupError:
+    nltk.download('words')
 
-
-def correct_word(word, dictionary, max_distance=5):
-    """
-    Suggest the closest correct spelling for 'word'.
-    """
-    word = word.lower()
-    best_word, best_dist = None, float('inf')
-
-    for w in dictionary:
-        dist = Levenshtein.distance(word, w)
-        if dist < best_dist:
-            best_word, best_dist = w, dist
-        if best_dist == 0:
-            break  # exact match found
-
-    if best_dist <= max_distance:
-        return best_word
-    else:
-        return None
+# Load dictionary
+dictionary = set(words.words())  # Use set for faster lookup
 
 
-def spell_check(text, dictionary):
-    """
-    Spell-check text and return suggestions for incorrect words.
-    """
-    words_in_text = text.split()
-    corrections = {}
-    for w in words_in_text:
-        if w.lower() not in dictionary:
-            suggestion = correct_word(w, dictionary)
-            if suggestion:
-                corrections[w] = suggestion
-    return corrections
+def levenshtein_distance(S: str, T: str) -> int:
+    """Compute Levenshtein distance using two-row optimization."""
+    m, n = len(S), len(T)
 
-# Example usage with user input
+    # Ensure T is the shorter string to reduce space
+    if n > m:
+        S, T = T, S
+        m, n = n, m
+
+    prev = list(range(n + 1))
+    cur = [0] * (n + 1)
+
+    for i in range(1, m + 1):
+        cur[0] = i
+        for j in range(1, n + 1):
+            cost = 0 if S[i - 1].lower() == T[j - 1].lower() else 1
+            cur[j] = min(
+                prev[j - 1] + cost,  # substitution/match
+                prev[j] + 1,  # deletion
+                cur[j - 1] + 1  # insertion
+            )
+        prev, cur = cur, prev  # swap rows
+    return prev[n]
+
+
+def spell_check(sentence: str):
+    words_in_sentence = sentence.split()
+
+    for word in words_in_sentence:
+        word_lower = word.lower()
+        # Exact match check
+        if word_lower in dictionary:
+            continue
+
+        # Compute Levenshtein distances with all dictionary words
+        min_dist = float('inf')
+        suggestions = []
+        for dict_word in dictionary:
+            dist = levenshtein_distance(word_lower, dict_word.lower())
+            if dist < min_dist:
+                min_dist = dist
+                suggestions = [dict_word]
+            elif dist == min_dist:
+                suggestions.append(dict_word)
+
+        print(
+            f"'{word}': Spelling error. Suggestions (distance {min_dist}): {suggestions[:10]}{'...' if len(suggestions) > 10 else ''}")
+
 
 if __name__ == "__main__":
-    dictionary = load_dictionary()
-
-    print("Enter your text below:")
-    text = input(" ")
-    print(text)
-
-    results = spell_check(text, dictionary)
-
-    if results:
-        print("\nPossible corrections:")
-        for wrong, right in results.items():
-            print(f"  {wrong} → {right}")
-    else:
-        print("\n No spelling mistakes detected!")
+    sentence = input("Enter a sentence to spell-check: ").strip()
+    spell_check(sentence)
