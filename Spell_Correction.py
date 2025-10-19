@@ -39,7 +39,7 @@ def levenshtein_distance(S: str, T: str) -> int:
 
 def spell_check(sentence: str):
     words_in_sentence = sentence.split()
-
+    suggestions = []
     for word in words_in_sentence:
         word_lower = word.lower()
         # Exact match check
@@ -59,7 +59,8 @@ def spell_check(sentence: str):
 
         print(
             f"'{word}': Spelling error. Suggestions (distance {min_dist}): {suggestions[:10]}{'...' if len(suggestions) > 10 else ''}")
-
+    if len(suggestions) == 0:
+            print("No spelling error.")
 
 if __name__ == "__main__":
     sentence = input("Enter a sentence to spell-check: ").strip()
