@@ -1,7 +1,7 @@
 # Spell Checker using Levenshtein Distance
 
 import nltk
-import Levenshtein  
+import Levenshtein
 nltk.download('words', quiet=True)
 
 from nltk.corpus import words
@@ -11,7 +11,7 @@ def load_dictionary():
     English words from NLTK's word corpus.
     """
     word_list = [w.lower() for w in words.words()]
-    return set(word_list)  
+    return set(word_list)
 
 
 def correct_word(word, dictionary, max_distance=5):
@@ -54,6 +54,7 @@ if __name__ == "__main__":
 
     print("Enter your text below:")
     text = input(" ")
+    print(text)
 
     results = spell_check(text, dictionary)
 
