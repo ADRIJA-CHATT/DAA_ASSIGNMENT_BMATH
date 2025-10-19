@@ -2,51 +2,55 @@
 """
 wagner_fischer_fixed.py
 
-wagner_fischer_with_log(s, t) to compute Levenshtein distance and a correct
-operation log + transformations (positions adjusted while replaying ops).
+Compute Levenshtein distance with Wagner-Fischer algorithm, including a correct
+operation log and step-by-step transformations. Positions are adjusted when
+replaying operations to account for previous inserts/deletes.
 """
 
 from typing import List, Dict, Any
 import pprint
 
-
 def wagner_fischer_with_log(s: str, t: str) -> Dict[str, Any]:
     m, n = len(s), len(t)
-    # Distance matrix
+    
+    # Initialize distance matrix D (size (m+1)x(n+1))
     D = [[0] * (n + 1) for _ in range(m + 1)]
-    # choice matrix: "match", "substitute", "delete", "insert", "start"
+    
+    # Initialize choice matrix to store operation types for backtracking
+    # Possible values: "match", "substitute", "delete", "insert", "start"
     choice = [["" for _ in range(n + 1)] for __ in range(m + 1)]
 
-    # base cases
+    # Base cases: transforming empty prefix of s/t
     for i in range(m + 1):
-        D[i][0] = i
+        D[i][0] = i  # cost of deleting all characters from s[:i]
         choice[i][0] = "start" if i == 0 else "delete"
     for j in range(n + 1):
-        D[0][j] = j
+        D[0][j] = j  # cost of inserting all characters of t[:j]
         choice[0][j] = "start" if j == 0 else "insert"
 
-    # fill DP with tie-break: prefer diag (match/substitute) > delete > insert
+    # Fill DP table
     for i in range(1, m + 1):
         for j in range(1, n + 1):
+            # Cost of substitution or match
             cost_diag = D[i - 1][j - 1] + (0 if s[i - 1] == t[j - 1] else 1)
+            # Cost of deletion
             cost_del = D[i - 1][j] + 1
+            # Cost of insertion
             cost_ins = D[i][j - 1] + 1
 
+            # Choose minimal cost
             best = min(cost_diag, cost_del, cost_ins)
             D[i][j] = best
 
-            # tie-breaking order: diag (match/sub) then delete then insert
+            # Tie-breaking: prefer diagonal (match/substitute) > delete > insert
             if best == cost_diag:
-                if s[i - 1] == t[j - 1]:
-                    choice[i][j] = "match"
-                else:
-                    choice[i][j] = "substitute"
+                choice[i][j] = "match" if s[i - 1] == t[j - 1] else "substitute"
             elif best == cost_del:
                 choice[i][j] = "delete"
             else:
                 choice[i][j] = "insert"
 
-    # Backtrack from (m,n) to produce reverse-chronological ops (rev_ops).
+    # Backtrack to generate reverse-chronological operation list
     i, j = m, n
     rev_ops: List[Dict[str, Any]] = []
     while i > 0 or j > 0:
@@ -55,12 +59,8 @@ def wagner_fischer_with_log(s: str, t: str) -> Dict[str, Any]:
             rev_ops.append({"op": "match", "pos": i - 1, "char": s[i - 1]})
             i, j = i - 1, j - 1
         elif op == "substitute":
-            rev_ops.append({
-                "op": "substitute",
-                "pos": i - 1,
-                "from": s[i - 1],
-                "to": t[j - 1]
-            })
+            rev_ops.append({"op": "substitute", "pos": i - 1,
+                            "from": s[i - 1], "to": t[j - 1]})
             i, j = i - 1, j - 1
         elif op == "delete":
             rev_ops.append({"op": "delete", "pos": i - 1, "char": s[i - 1]})
@@ -71,31 +71,32 @@ def wagner_fischer_with_log(s: str, t: str) -> Dict[str, Any]:
         else:
             break
 
+    # Reverse ops to chronological order
     ops = list(reversed(rev_ops))
 
+    # Helper function: adjust original position to current string index
+    # considering previously applied insertions and deletions
     def adjusted_pos(original_pos: int, applied_ops: List[Dict[str, Any]]) -> int:
         shift = 0
         for a in applied_ops:
             p = a["pos"]
-            if a["op"] == "insert":
-                if p <= original_pos:
-                    shift += 1
-            elif a["op"] == "delete":
-                if p < original_pos:
-                    shift -= 1
+            if a["op"] == "insert" and p <= original_pos:
+                shift += 1
+            elif a["op"] == "delete" and p < original_pos:
+                shift -= 1
         return original_pos + shift
 
-    cur: List[str] = list(s)
-    transformations: List[str] = ["".join(cur)]
-    applied_ops: List[Dict[str, Any]] = []
+    # Apply operations step-by-step to reconstruct intermediate strings
+    cur: List[str] = list(s)  # current string state
+    transformations: List[str] = ["".join(cur)]  # list of string states
+    applied_ops: List[Dict[str, Any]] = []  # chronological operations applied
 
     for action in ops:
         if action["op"] == "match":
+            # Match does not modify string
             pos = adjusted_pos(action["pos"], applied_ops)
-            if 0 <= pos < len(cur):
-                applied_ops.append({"op": "match", "pos": pos, "char": cur[pos]})
-            else:
-                applied_ops.append({"op": "match", "pos": pos, "char": None})
+            applied_ops.append({"op": "match", "pos": pos,
+                                "char": cur[pos] if 0 <= pos < len(cur) else None})
             transformations.append("".join(cur))
 
         elif action["op"] == "substitute":
@@ -105,19 +106,9 @@ def wagner_fischer_with_log(s: str, t: str) -> Dict[str, Any]:
             if 0 <= pos < len(cur):
                 old = cur[pos]
                 cur[pos] = to_char
-                applied_ops.append({
-                    "op": "substitute",
-                    "pos": pos,
-                    "from": old,
-                    "to": to_char
-                })
+                applied_ops.append({"op": "substitute", "pos": pos, "from": old, "to": to_char})
             else:
-                applied_ops.append({
-                    "op": "substitute",
-                    "pos": pos,
-                    "from": None,
-                    "to": to_char
-                })
+                applied_ops.append({"op": "substitute", "pos": pos, "from": None, "to": to_char})
             transformations.append("".join(cur))
 
         elif action["op"] == "delete":
@@ -133,28 +124,26 @@ def wagner_fischer_with_log(s: str, t: str) -> Dict[str, Any]:
         elif action["op"] == "insert":
             orig_pos = action["pos"]
             pos = adjusted_pos(orig_pos, applied_ops)
-            if pos < 0:
-                pos = 0
-            if pos > len(cur):
-                pos = len(cur)
+            pos = max(0, min(pos, len(cur)))  # clamp to valid range
             cur.insert(pos, action["char"])
             applied_ops.append({"op": "insert", "pos": pos, "char": action["char"]})
             transformations.append("".join(cur))
 
         else:
+            # Unknown operation: append current state
             transformations.append("".join(cur))
 
     return {
-        "distance": D[m][n],
-        "D": D,
-        "choice": choice,
-        "ops": applied_ops,
-        "transformations": transformations
+        "distance": D[m][n],           # final Levenshtein distance
+        "D": D,                        # full DP matrix
+        "choice": choice,              # choice matrix for debugging
+        "ops": applied_ops,            # chronological operations applied
+        "transformations": transformations  # string states after each operation
     }
 
 
 def print_summary(result: Dict[str, Any]) -> None:
-    """Nicely print key parts of the result."""
+    """Print distance, transformations, and applied operations."""
     pp = pprint.PrettyPrinter(width=120, compact=False)
     print("\nLevenshtein distance:", result["distance"])
     print("\nStep-by-step transformations (initial -> ... -> target):")
@@ -165,7 +154,7 @@ def print_summary(result: Dict[str, Any]) -> None:
 
 
 def main() -> int:
-    """Always ask user for two strings (ignores command-line arguments)."""
+    """Main entry point: get two strings and display distance and operations."""
     s = input("Enter source string: ").strip()
     t = input("Enter target string: ").strip()
 
