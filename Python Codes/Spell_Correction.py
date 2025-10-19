@@ -59,12 +59,14 @@ def spell_check():
         return
 
     # Step 6: For each wrong word, find closest dictionary matches
-    for w in wrong_words:
+    unique_wrong_words = list(set(wrong_words))  # deduplicate first
+
+    for w in unique_wrong_words:
         min_dist = float("inf")
         suggestions = []
 
         for dict_word in DICTIONARY:
-            dict_word=dict_word.lower()
+            dict_word = dict_word.lower()
             dist = levenshtein_distance(w, dict_word)
             if dist < min_dist:
                 min_dist = dist
@@ -72,8 +74,9 @@ def spell_check():
             elif dist == min_dist:
                 suggestions.append(dict_word)
 
-        print(f"‘{w}’: Spelling error. Suggestions (distance {min_dist}): {suggestions[:10]}{'...' if len(suggestions) > 10 else ''}")
-        wrong_words.remove(w)
+        print(
+            f"‘{w}’: Spelling error. Suggestions (distance {min_dist}): {suggestions[:10]}{'...' if len(suggestions) > 10 else ''}")
+
 # --- Run ---
 if __name__ == "__main__":
     spell_check()
